@@ -1,0 +1,265 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-primary: #111111;
+  --color-brand-accent: #0071e3;
+  --color-brand-accent-light: #e1f0ff;
+  --color-brand-deep: #000000;
+  --color-brand-gold: #d2d2d7;
+
+  --color-surface-base: #f5f5f7;
+  --color-surface-raised: #ffffff;
+  --color-surface-card: #ffffff;
+  --color-surface-muted: #eef0f4;
+  --color-surface-inset: #e6e8ee;
+  --color-surface-preview: #dfe3ea;
+  --color-surface-overlay: rgba(0, 0, 0, 0.4);
+  --color-surface-scrim: rgba(0, 0, 0, 0.8);
+
+  --color-glass-surface: rgba(255, 255, 255, 0.88);
+  --color-glass-surface-strong: rgba(255, 255, 255, 0.96);
+  --color-glass-border: rgba(255, 255, 255, 0.7);
+  --color-glass-border-subtle: rgba(255, 255, 255, 0.6);
+
+  --color-content-primary: #111111;
+  --color-content-secondary: #3a3a3c;
+  --color-content-tertiary: #5c5c5f;
+  --color-content-muted: #86868b;
+  --color-content-faint: #a1a1a6;
+  --color-content-inverse: #ffffff;
+  --color-content-link: #0071e3;
+
+  --color-line: #e0e3ea;
+  --color-line-subtle: rgba(17, 17, 17, 0.06);
+  --color-line-strong: #cfcfd5;
+  --color-line-heavy: #b6b8c1;
+
+  --color-interactive: #0071e3;
+  --color-interactive-hover: #0077ed;
+  --color-interactive-border: #0071e3;
+  --color-interactive-disabled-bg: #e5e5e7;
+  --color-interactive-disabled-text: #a1a1a6;
+  --color-interactive-subtle-hover: #f5f5f7;
+
+  --color-success: #15803d;
+  --color-success-bg: #ecfdf5;
+  --color-success-border: #a7f3d0;
+  --color-success-solid: #059669;
+
+  --color-warning: #b45309;
+  --color-warning-bg: #fffbeb;
+  --color-warning-border: #fde68a;
+  --color-warning-solid: #d97706;
+
+  --color-error: #be123c;
+  --color-error-bg: #fff1f2;
+  --color-error-border: #fecdd3;
+  --color-error-solid: #e11d48;
+  --color-error-dot: #f43f5e;
+
+  --color-info: #1d4ed8;
+  --color-info-bg: #eff6ff;
+  --color-info-border: #bfdbfe;
+  --color-info-solid: #2563eb;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", sans-serif;
+  --font-display: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  --font-text: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  --font-code: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  --radius-none: 0px;
+  --radius-sm: 2px;
+  --radius-default: 4px;
+  --radius-button: 4px;
+  --radius-input: 4px;
+  --radius-card: 4px;
+  --radius-dialog: 6px;
+  --radius-badge: 9999px;
+
+  --shadow-card: 0 2px 6px rgba(15, 35, 95, 0.08);
+  --shadow-elevated: 0 8px 18px rgba(15, 35, 95, 0.12);
+  --shadow-popover: 0 10px 28px rgba(15, 35, 95, 0.16);
+  --shadow-toolbar: 0 1px 4px rgba(15, 35, 95, 0.08);
+
+  --ease-apple: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    font-weight: 400;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    --sai-top: env(safe-area-inset-top, 0px);
+    --sai-bottom: env(safe-area-inset-bottom, 0px);
+    --sai-left: env(safe-area-inset-left, 0px);
+    --sai-right: env(safe-area-inset-right, 0px);
+  }
+
+  * {
+    @apply box-border;
+  }
+
+  html,
+  body,
+  #root {
+    @apply min-h-screen;
+  }
+
+  body {
+    @apply m-0 bg-surface-base text-content-primary font-sans;
+    background: #f2f3f5;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply m-0 font-display text-content-primary;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  p,
+  li {
+    text-wrap: pretty;
+  }
+
+  code,
+  pre {
+    @apply font-code;
+  }
+
+  a {
+    @apply text-content-link no-underline;
+  }
+
+  ::selection {
+    background: var(--color-brand-accent-light);
+  }
+
+  :focus-visible {
+    outline: 2px solid rgba(0, 113, 227, 0.5);
+    outline-offset: 2px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-surface-base);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-brand-gold);
+    border: 2px solid var(--color-surface-base);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #b8b8bd;
+  }
+}
+
+@layer components {
+  .app-shell {
+    @apply min-h-screen;
+  }
+
+  .glass-header {
+    background: rgba(255, 255, 255, 0.96);
+    border-bottom: 1px solid #e5e6eb;
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-toolbar);
+  }
+
+  .page-layout {
+    @apply flex w-full flex-1 px-4 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-6;
+  }
+
+  .surface-panel {
+    @apply rounded-[var(--radius-card)] border border-line-subtle;
+    background: #ffffff;
+    box-shadow: var(--shadow-card);
+  }
+
+  .surface-muted {
+    @apply rounded-[var(--radius-card)] border;
+    background: #f7f8fa;
+    border-color: #e5e6eb;
+  }
+
+  .surface-receipt {
+    @apply rounded-[var(--radius-card)] border bg-white;
+    border-color: #e5e6eb;
+    box-shadow: var(--shadow-card);
+  }
+
+  .pill-badge {
+    @apply inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold;
+  }
+
+  .typo-display {
+    @apply font-display tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  .typo-code {
+    @apply font-code tabular-nums;
+    letter-spacing: 0.02em;
+  }
+
+  .amount-emphasis {
+    @apply font-display tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  .typo-crypto-code {
+    @apply font-code tabular-nums;
+    letter-spacing: 0.02em;
+  }
+}
+
+@layer utilities {
+  .t-page-slide {
+    animation: page-slide-in 220ms var(--ease-spring);
+  }
+}
+
+@keyframes page-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
