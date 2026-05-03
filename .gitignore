@@ -29,4 +29,19 @@ lerna-debug.log*
 
 # Local env files
 *.local
+.env
+.env.*
+!.env.example
+
+# Claude AI config
+.claude/
+
+# Test coverage
+coverage/
+
+# Temp files
+tmp/
+temp/
+
+# Docs plans
 docs/plans/
