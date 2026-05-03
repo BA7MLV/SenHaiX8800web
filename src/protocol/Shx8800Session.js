@@ -133,18 +133,23 @@ export class Shx8800Session {
     }
   }
 
-  async writeRadio(image, onProgress, encodeBlocks) {
+  async writeRadio(image, onProgress, encodeBlocks, { onlyAddresses } = {}) {
     await this.handshake(true);
     const blocks = encodeBlocks(image);
     this.transport.setLoggingMode({ sendLogs: false, notificationLogs: false });
 
+    const addresses = onlyAddresses
+      ? READ_ADDRESSES.filter((addr) => onlyAddresses.has(addr))
+      : READ_ADDRESSES;
+    const total = addresses.length;
+
     try {
-      for (const [index, address] of READ_ADDRESSES.entries()) {
+      for (const [index, address] of addresses.entries()) {
         await this.writeBlock(address, blocks[address]);
         onProgress?.({
           phase: 'write',
           current: index + 1,
-          total: READ_ADDRESSES.length,
+          total,
           address
         });
       }

@@ -1,5 +1,3 @@
-import { Card } from '../components/ui/Card.jsx';
-import { PageTitleBar } from '../components/common/PageTitleBar.jsx';
 import { Field } from '../components/ui/Field.jsx';
 import { Input } from '../components/ui/Input.jsx';
 import { PageLayout } from '../components/ui/PageLayout.jsx';
@@ -19,10 +17,11 @@ function toNumber(value, fallback) {
   return Number.isNaN(parsed) ? fallback : parsed;
 }
 
-function VfoCard({ title, prefix, vfos, updateVfo }) {
+function VfoSection({ title, prefix, vfos, updateVfo }) {
   return (
-    <Card title={title}>
-      <div className="grid gap-4">
+    <div className="space-y-4">
+      <h3 className="m-0 text-sm font-medium text-content-primary">{title}</h3>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Field label="频率">
           <Input
             value={vfos[`${prefix}Freq`]}
@@ -77,7 +76,7 @@ function VfoCard({ title, prefix, vfos, updateVfo }) {
           />
         </Field>
       </div>
-    </Card>
+    </div>
   );
 }
 
@@ -86,43 +85,50 @@ export function RadioPage() {
   const { fm, vfos } = radioImage;
 
   return (
-    <PageLayout>
-      <PageTitleBar title="收音机" />
+    <PageLayout className="gap-4">
+      <div className="rounded-[8px] border border-line-subtle bg-white">
+        <div className="px-6 py-4">
+          <h1 className="m-0 text-lg font-semibold text-content-primary">
+            收音机
+          </h1>
+        </div>
 
-      <div className="grid gap-5 xl:grid-cols-2">
-        <VfoCard title="VFO A" prefix="vfoA" vfos={vfos} updateVfo={updateVfo} />
-        <VfoCard title="VFO B" prefix="vfoB" vfos={vfos} updateVfo={updateVfo} />
-      </div>
-
-      <Card title="FM 预设">
-        <div className="space-y-5">
-          <div className="grid gap-4 sm:grid-cols-[160px_minmax(0,1fr)] sm:items-center">
-            <Field label="当前频点">
-              <Input
-                type="number"
-                min={0}
-                max={1080}
-                value={fm.curFreq}
-                onChange={(event) => updateFm({ curFreq: toNumber(event.target.value, fm.curFreq) })}
-              />
-            </Field>
+        <div className="border-t border-line-subtle px-6 py-4 space-y-6">
+          <div className="space-y-6">
+            <VfoSection title="VFO A" prefix="vfoA" vfos={vfos} updateVfo={updateVfo} />
+            <VfoSection title="VFO B" prefix="vfoB" vfos={vfos} updateVfo={updateVfo} />
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
-            {fm.channels.map((channel, index) => (
-              <Field key={index} label={`CH${index + 1}`}>
+          <div className="space-y-4">
+            <h3 className="m-0 text-sm font-medium text-content-primary">FM 预设</h3>
+            <div className="grid gap-4 sm:grid-cols-[160px_minmax(0,1fr)] sm:items-center">
+              <Field label="当前频点">
                 <Input
                   type="number"
                   min={0}
                   max={1080}
-                  value={channel}
-                  onChange={(event) => updateFmChannel(index, toNumber(event.target.value, channel))}
+                  value={fm.curFreq}
+                  onChange={(event) => updateFm({ curFreq: toNumber(event.target.value, fm.curFreq) })}
                 />
               </Field>
-            ))}
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
+              {fm.channels.map((channel, index) => (
+                <Field key={index} label={`CH${index + 1}`}>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={1080}
+                    value={channel}
+                    onChange={(event) => updateFmChannel(index, toNumber(event.target.value, channel))}
+                  />
+                </Field>
+              ))}
+            </div>
           </div>
         </div>
-      </Card>
+      </div>
     </PageLayout>
   );
 }

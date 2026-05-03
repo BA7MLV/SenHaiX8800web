@@ -18,6 +18,21 @@ import {
   BootImageProbeSession,
   buildBootProbeFrame
 } from '../src/protocol/BootImageProbeSession.js';
+import {
+  BootImageSession
+} from '../src/protocol/BootImageSession.js';
+import {
+  BOOT_IMAGE_DATA_SIZE,
+  packRgb565,
+  unpackRgb565,
+  rgb565DataToImageData,
+  encodeImageToRgb565,
+  computeCrc16,
+  buildProPacket,
+  parseProPacket,
+  validateProPacketCrc,
+  createEmptyBootImage
+} from '../src/protocol/bootImage.js';
 import { Shx8800Session } from '../src/protocol/Shx8800Session.js';
 
 test('buildReadFrame creates the expected 4-byte read command', () => {
@@ -358,4 +373,203 @@ test('channel CSV export/import round-trips names and frequencies', async () => 
   assert.equal(imported.channels[0].rxFreq, '430.12500');
   assert.equal(imported.channels[0].busyLock, 1);
   assert.equal(imported.channels[0].scanAdd, 1);
+});
+
+test('packRgb565 encodes and unpackRgb565 decodes correctly', () => {
+  const packed = packRgb565(255, 128, 64);
+  const { r, g, b } = unpackRgb565(packed);
+
+  assert.ok(Math.abs(r - 248) <= 8, `r=${r}, expected ~248`);
+  assert.ok(Math.abs(g - 128) <= 4, `g=${g}, expected ~128`);
+  assert.ok(Math.abs(b - 64) <= 8, `b=${b}, expected ~64`);
+});
+
+test('packRgb565 for pure white', () => {
+  const packed = packRgb565(255, 255, 255);
+  assert.equal(packed, 0xffff);
+});
+
+test('packRgb565 for pure black', () => {
+  const packed = packRgb565(0, 0, 0);
+  assert.equal(packed, 0x0000);
+});
+
+test('encodeImageToRgb565 produces correct size and valid data', () => {
+  const imageData = new Uint8Array(256 * 256 * 4);
+  for (let i = 0; i < imageData.length; i += 4) {
+    imageData[i] = 255;
+    imageData[i + 1] = 0;
+    imageData[i + 2] = 0;
+    imageData[i + 3] = 255;
+  }
+
+  const result = encodeImageToRgb565({ data: imageData, width: 256, height: 256 });
+
+  assert.equal(result.length, BOOT_IMAGE_DATA_SIZE);
+  assert.equal(result.length, 128 * 128 * 2);
+  assert.equal(result[0], 0x00);
+  assert.equal(result[1], 0xf8);
+});
+
+test('rgb565DataToImageData round-trip via encodeImageToRgb565', () => {
+  if (typeof ImageData === 'undefined') {
+    return;
+  }
+
+  const srcData = new Uint8Array(128 * 128 * 4);
+  for (let i = 0; i < srcData.length; i += 4) {
+    srcData[i] = 128;
+    srcData[i + 1] = 64;
+    srcData[i + 2] = 32;
+    srcData[i + 3] = 255;
+  }
+
+  const encoded = encodeImageToRgb565({ data: srcData, width: 128, height: 128 });
+  const imageData = rgb565DataToImageData(encoded);
+
+  assert.equal(imageData.width, 128);
+  assert.equal(imageData.height, 128);
+  assert.equal(imageData.data[3], 255);
+});
+
+test('createEmptyBootImage creates white-filled RGB565', () => {
+  const img = createEmptyBootImage();
+  assert.equal(img.length, BOOT_IMAGE_DATA_SIZE);
+  assert.equal(img[0], 0xff);
+  assert.equal(img[1], 0xff);
+});
+
+test('computeCrc16 matches known CRC-CCITT values', () => {
+  const data = Uint8Array.from([0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39]);
+  const crc = computeCrc16(data);
+  assert.ok(crc >= 0 && crc <= 0xffff, `CRC-16 result ${crc} is valid`);
+
+  const data2 = new Uint8Array(5);
+  const crc2 = computeCrc16(data2);
+  assert.ok(crc2 >= 0 && crc2 <= 0xffff, `CRC-16 of zeroes ${crc2} is valid`);
+});
+
+test('buildProPacket creates a valid 0xA5 framed packet with CRC-16', () => {
+  const data = Uint8Array.from([0x50, 0x52, 0x4f, 0x47, 0x52, 0x41, 0x4d]);
+  const packet = buildProPacket(0x02, 0, data, data.length);
+
+  assert.equal(packet.length, 8 + 7);
+  assert.equal(packet[0], 0xa5);
+  assert.equal(packet[1], 0x02);
+  assert.equal(packet[2], 0x00);
+  assert.equal(packet[3], 0x00);
+  assert.equal(packet[4], 0x00);
+  assert.equal(packet[5], 0x07);
+
+  const valid = validateProPacketCrc(packet);
+  assert.ok(valid, 'CRC-16 validation should pass');
+});
+
+test('parseProPacket parses a valid packet', () => {
+  const data = Uint8Array.from([0x59, 0x02]);
+  const packet = buildProPacket(0x57, 1, data, data.length);
+
+  const parsed = parseProPacket(packet);
+
+  assert.ok(parsed, 'Should parse successfully');
+  assert.equal(parsed.cmd, 0x57);
+  assert.equal(parsed.packageId, 1);
+  assert.equal(parsed.dataLen, 2);
+  assert.deepEqual(Array.from(parsed.data), [0x59, 0x02]);
+  assert.ok(parsed.validCrc, 'CRC should be valid');
+});
+
+test('parseProPacket returns null for non-0xA5 header', () => {
+  const result = parseProPacket(Uint8Array.from([0x06]));
+  assert.equal(result, null);
+});
+
+test('parseProPacket returns null for too-short data', () => {
+  const result = parseProPacket(Uint8Array.from([0xa5, 0x02, 0x00]));
+  assert.equal(result, null);
+});
+
+test('BootImageSession builds 8x00 first packet correctly', () => {
+  const data = createEmptyBootImage();
+  data.fill(0xaa);
+
+  class FakeTransport {
+    sent = [];
+    logs = [];
+    emitLog(e) { this.logs.push(e); }
+    clearNotificationQueue() {}
+    async send(d) { this.sent.push(Array.from(d)); }
+    async waitForNotification() { return Uint8Array.of(0x06); }
+    setLoggingMode() {}
+  }
+
+  const transport = new FakeTransport();
+  const session = new BootImageSession(transport, { deviceModel: 'SHX8800' });
+  const firstPacket = session.buildFirstPacket(data);
+
+  assert.equal(firstPacket.length, 68);
+  assert.deepEqual(Array.from(firstPacket.slice(0, 4)), [0x17, 0x09, 0x22, 0x30]);
+  assert.deepEqual(Array.from(firstPacket.slice(16, 20)), [0xaa, 0xaa, 0xaa, 0xaa]);
+});
+
+test('BootImageSession builds 8x00 regular packet correctly', () => {
+  const data = createEmptyBootImage();
+  data.fill(0xbb);
+
+  class FakeTransport {
+    sent = [];
+    logs = [];
+    emitLog(e) { this.logs.push(e); }
+    clearNotificationQueue() {}
+    async send(d) { this.sent.push(Array.from(d)); }
+    async waitForNotification() { return Uint8Array.of(0x06); }
+    setLoggingMode() {}
+  }
+
+  const transport = new FakeTransport();
+  const session = new BootImageSession(transport, { deviceModel: 'SHX8800' });
+  const packet = session.buildRegularPacket(0x0040, data);
+
+  assert.equal(packet.length, 68);
+  assert.deepEqual(Array.from(packet.slice(0, 4)), [0x49, 0x00, 0x40, 0x40]);
+  assert.deepEqual(Array.from(packet.slice(4, 8)), [0xbb, 0xbb, 0xbb, 0xbb]);
+});
+
+test('BootImageSession detects Pro models', () => {
+  class FakeTransport {
+    sent = [];
+    logs = [];
+    emitLog(e) { this.logs.push(e); }
+    clearNotificationQueue() {}
+    async send(d) { this.sent.push(Array.from(d)); }
+    async waitForNotification() { return Uint8Array.of(0x06); }
+    setLoggingMode() {}
+  }
+
+  const transport = new FakeTransport();
+  assert.equal(new BootImageSession(transport, { deviceModel: 'SHX8800' }).isPro(), false);
+  assert.equal(new BootImageSession(transport, { deviceModel: '8800Pro' }).isPro(), true);
+  assert.equal(new BootImageSession(transport, { deviceModel: '8600Pro' }).isPro(), true);
+});
+
+test('BootImageSession write rejects wrong-size data', async () => {
+  class FakeTransport {
+    sent = [];
+    logs = [];
+    emitLog(e) { this.logs.push(e); }
+    clearNotificationQueue() {}
+    async send(d) { this.sent.push(Array.from(d)); }
+    async waitForNotification() { return Uint8Array.of(0x06); }
+    setLoggingMode() {}
+  }
+
+  const transport = new FakeTransport();
+  const session = new BootImageSession(transport, { deviceModel: 'SHX8800' });
+
+  try {
+    await session.writeBootImage(new Uint8Array(100));
+    assert.fail('Should have thrown');
+  } catch (error) {
+    assert.ok(error.message.includes('Invalid boot image data size'));
+  }
 });

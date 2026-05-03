@@ -41,14 +41,7 @@ function useMenuGroups(t) {
         { to: '/share', label: t('sidebar.channelShare'), icon: Share2 }
       ]
     },
-    {
-      title: t('sidebar.future'),
-      icon: UploadCloud,
-      items: [
-        { label: t('sidebar.firmwareUpgrade'), icon: UploadCloud, disabled: true },
-        { label: t('sidebar.radioChat'), icon: MessageCircleMore, disabled: true }
-      ]
-    }
+
   ];
 }
 

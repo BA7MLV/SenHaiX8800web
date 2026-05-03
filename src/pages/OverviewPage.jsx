@@ -1,4 +1,3 @@
-import { Badge } from '../components/ui/Badge.jsx';
 import { Card } from '../components/ui/Card.jsx';
 import { PageLayout } from '../components/ui/PageLayout.jsx';
 import { useAppContext } from '../context/AppContext';
@@ -15,15 +14,20 @@ function InfoRow({ label, value, mono = false }) {
 }
 
 export function OverviewPage() {
-  const { connected, busy, connectionInfo, progress } = useAppContext();
+  const { connected, connectionInfo } = useAppContext();
 
   return (
     <PageLayout className="gap-4">
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
-        <Card title="基础信息">
+      <Card title="8800web">
+        <div className="space-y-4">
+          <div className="space-y-3 text-sm text-content-secondary">
+            <p className="m-0">8800web 是一个基于 Web Bluetooth 的对讲机配置工具。</p>
+            <p className="m-0">通过蓝牙连接手台后，可以读取和修改信道、频率、功率等参数。</p>
+            <p className="m-0">支持备份和还原配置，以及开机图片自定义等功能。</p>
+          </div>
           {!connected ? (
             <p className="m-0 text-sm text-content-secondary">
-              欢迎你~，点击右上角"连接"按钮连接手台。
+              点击右上角"连接设备"按钮连接手台。
             </p>
           ) : (
             <dl className="space-y-0">
@@ -40,21 +44,8 @@ export function OverviewPage() {
               />
             </dl>
           )}
-        </Card>
-
-        <Card title="当前状态">
-          <div className="space-y-4">
-            <Badge variant={busy ? 'info' : 'default'}>{busy ? '任务执行中' : '空闲'}</Badge>
-            <div className="h-2 overflow-hidden rounded-full bg-surface-muted">
-              <div
-                className="h-full rounded-full bg-interactive transition-all duration-300 ease-[var(--ease-apple)]"
-                style={{ width: `${progress.percent}%` }}
-              />
-            </div>
-            <p className="m-0 text-sm text-content-secondary">{progress.label}</p>
-          </div>
-        </Card>
-      </div>
+        </div>
+      </Card>
     </PageLayout>
   );
 }

@@ -209,6 +209,26 @@ export function normalizeRadioModel(value) {
   return normalized;
 }
 
+function identicalBlocks(left, right) {
+  if (!left || !right || left.length !== right.length) return false;
+  for (let i = 0; i < left.length; i += 1) {
+    if (left[i] !== right[i]) return false;
+  }
+  return true;
+}
+
+export function diffRadioImageBlocks(originalImage, modifiedImage) {
+  const original = applyRadioImageToBlocks(originalImage, originalImage.rawBlocks);
+  const modified = applyRadioImageToBlocks(modifiedImage, modifiedImage.rawBlocks);
+  const changed = new Set();
+  for (const address of READ_ADDRESSES) {
+    if (!identicalBlocks(original[address], modified[address])) {
+      changed.add(address);
+    }
+  }
+  return changed;
+}
+
 export function bytesToHex(bytes) {
   return Array.from(bytes)
     .map((byte) => byte.toString(16).padStart(2, '0'))

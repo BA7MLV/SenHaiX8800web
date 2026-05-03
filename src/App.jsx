@@ -8,6 +8,7 @@ import {
   CHANNEL_OPTIONS,
   RADIO_MODELS,
   createEmptyRadioImage,
+  diffRadioImageBlocks,
   exportBackupToJson,
   importBackupFromJson
 } from './protocol/shx8800';
@@ -245,6 +246,10 @@ function App({ onToggleTheme, currentTheme }) {
 
   const handleWriteRadio = async () => {
     await withBusy(t('progress.writing'), async () => {
+      const changedAddresses = diffRadioImageBlocks(
+        originalRadioImageRef.current,
+        radioImage
+      );
       const blocks = await sessionRef.current.writeRadio(
         radioImage,
         ({ current, total, address }) => {
@@ -255,7 +260,8 @@ function App({ onToggleTheme, currentTheme }) {
             });
           }
         },
-        (image) => applyRadioImageToBlocks(image, image.rawBlocks)
+        (image) => applyRadioImageToBlocks(image, image.rawBlocks),
+        { onlyAddresses: changedAddresses }
       );
       setRadioImage((prev) => {
         originalRadioImageRef.current = structuredClone(prev);

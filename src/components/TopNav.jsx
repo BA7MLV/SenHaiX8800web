@@ -53,6 +53,7 @@ export function TopNav() {
           onClick={toggleSidebar}
         />
         <Link to="/overview" className="inline-flex items-center gap-2 text-content-primary no-underline">
+          <span className="font-semibold text-sm">8800web</span>
           <span className="rounded-sm bg-surface-muted px-1.5 py-0.5 text-xs text-content-muted">Beta</span>
         </Link>
         <div className="hidden min-w-0 items-center gap-2 text-sm text-content-muted md:flex">
@@ -81,16 +82,6 @@ export function TopNav() {
           options={radioModelOptions}
           className="hidden sm:inline-flex min-w-[96px] rounded-sm border border-line/50 bg-surface-card/92 px-1.5 py-0.5 text-xs"
         />
-        <span
-          className={cn(
-            'hidden rounded-sm border px-2 py-1 text-xs sm:inline-flex',
-            connected
-              ? 'border-success-border bg-success-bg text-success'
-              : 'border-line bg-surface-muted text-content-muted'
-          )}
-        >
-          {connected ? '已连接' : '未连接'}
-        </span>
         <IconButton
           aria-label="切换语言"
           icon={<Globe className="size-4" />}
@@ -98,26 +89,28 @@ export function TopNav() {
           size="sm"
           onClick={toggleLanguage}
         />
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={handleDisconnect}
-          disabled={!connected || busy}
-          icon={<Unplug className="size-4" />}
-          className="hidden sm:inline-flex"
-        >
-          断开
-        </Button>
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={handleConnect}
-          disabled={connected || busy}
-          icon={<Wifi className="size-4" />}
-        >
-          <span className="hidden sm:inline">连接设备</span>
-          <span className="sm:hidden">连接</span>
-        </Button>
+        {connected ? (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleDisconnect}
+            disabled={busy}
+            icon={<Unplug className="size-4" />}
+          >
+            断开
+          </Button>
+        ) : (
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleConnect}
+            disabled={busy}
+            icon={<Wifi className="size-4" />}
+          >
+            <span className="hidden sm:inline">连接设备</span>
+            <span className="sm:hidden">连接</span>
+          </Button>
+        )}
       </div>
 
       <DiffModal

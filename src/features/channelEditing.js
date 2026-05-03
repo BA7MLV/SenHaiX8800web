@@ -238,7 +238,30 @@ export function importChannelsFromCsv(csvText, options = {}) {
   }
 
   const [header, ...body] = rows;
-  const columnIndex = Object.fromEntries(header.map((name, index) => [name.trim(), index]));
+  
+  // 支持中英文表头映射
+  const headerMapping = {
+    '序号': 'slot',
+    '信道名称': 'name',
+    '接收频率': 'rxFreq',
+    '发送频率': 'txFreq',
+    '接收亚音': 'rxTone',
+    '发送亚音': 'txTone',
+    '发送功率': 'txPower',
+    '带宽': 'bandwidth',
+    '扫描': 'scanAdd',
+    '忙锁': 'busyLock',
+    'PTT ID': 'pttid',
+    '信令组': 'signalGroup',
+    '是否可见': 'isVisible'
+  };
+  
+  const normalizedHeader = header.map((name) => {
+    const trimmed = name.trim();
+    return headerMapping[trimmed] || trimmed;
+  });
+  
+  const columnIndex = Object.fromEntries(normalizedHeader.map((name, index) => [name, index]));
   const channels = body.slice(0, options.bankSize ?? body.length).map((columns, index) => {
     const channel = createEmptyChannel(index + 1);
     channel.name = columns[columnIndex.name] ?? '';
@@ -257,4 +280,43 @@ export function importChannelsFromCsv(csvText, options = {}) {
   });
 
   return { channels, warnings: [] };
+}
+
+export function generateCsvTemplate() {
+  const headers = [
+    '序号',
+    '信道名称',
+    '接收频率',
+    '发送频率',
+    '接收亚音',
+    '发送亚音',
+    '发送功率',
+    '带宽',
+    '扫描',
+    '忙锁',
+    'PTT ID',
+    '信令组',
+    '是否可见'
+  ];
+
+  const sampleRows = [
+    [1, '示例信道1', '462.5625', '467.5625', 'OFF', 'OFF', 0, 0, 0, 0, 0, 0, 1],
+    [2, '示例信道2', '462.5875', '467.5875', '67.0', '67.0', 1, 1, 1, 1, 1, 1, 1]
+  ];
+
+  return [
+    headers.join(','),
+    ...sampleRows.map((row) => row.map(escapeCsvValue).join(','))
+  ].join('\n');
+}
+
+export function downloadCsvTemplate(model = 'radio') {
+  const csv = generateCsvTemplate();
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = `${String(model).toLowerCase()}-channel-template.csv`;
+  anchor.click();
+  URL.revokeObjectURL(url);
 }
